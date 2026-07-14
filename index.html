@@ -49,9 +49,18 @@ nav{
 }
 
 .logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
     font-size:1.8rem;
     font-weight:800;
     color:#00e0ff;
+}
+
+.logo img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
 }
 
 .nav-links{
@@ -270,7 +279,10 @@ footer{
 <header>
 <div class="container">
 <nav>
-<div class="logo"><a href=logo.jpg >BELTMAN </a></div>
+<div class="logo">
+    <img src="logo.png" alt="BELTMAN Logo">
+    <span>BELTMAN</span>
+</div>
 
 <div class="nav-links">
 <a href="#about">About</a>
