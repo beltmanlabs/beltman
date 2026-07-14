@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BELTMAN — Phase 1 Contribution Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg: #090b10;
+    --panel: #10141c;
+    --panel-2: #151b25;
+    --line: #232b38;
+    --text: #e7ecf2;
+    --text-dim: #8b96a8;
+    --amber: #ffb000;
+    --amber-dim: #7a5a1f;
+    --green: #00d9a3;
+    --red: #ff5c5c;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(255,176,0,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:32px 16px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* ---- ticker header ---- */
+  .ticker{
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:10px;
+    padding:10px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    color:var(--text-dim);
+    margin-bottom:28px;
+    overflow:hidden;
+  }
+  .ticker .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--green);
+    display:inline-block;
+    margin-right:8px;
+    box-shadow:0 0 8px var(--green);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  .ticker .price{color:var(--amber);font-weight:600;}
+  .ticker .stale{color:var(--red);}
+
+  /* ---- header ---- */
+  header{margin-bottom:32px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:10px;
+  }
+  h1{
+    font-size:clamp(26px,5vw,36px);
+    line-height:1.15;
+    margin:0 0 10px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    color:var(--text-dim);
+    font-size:15px;
+    line-height:1.6;
+    max-width:56ch;
+    margin:0;
+  }
+
+  /* ---- phase rail ---- */
+  .phase-rail{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:2px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    margin:28px 0 8px;
+  }
+  .phase-btn{
+    background:var(--panel);
+    border:none;
+    color:var(--text-dim);
+    font-family:var(--mono);
+    padding:14px 6px 12px;
+    cursor:pointer;
+    text-align:center;
+    transition:background .15s, color .15s;
+  }
+  .phase-btn .num{display:block;font-size:10px;letter-spacing:0.1em;opacity:0.7;margin-bottom:4px;}
+  .phase-btn .p{display:block;font-size:13px;font-weight:600;}
+  .phase-btn:hover{background:var(--panel-2);color:var(--text);}
+  .phase-btn.active{background:var(--panel-2);color:var(--amber);}
+  .phase-btn.active .num{color:var(--amber);opacity:1;}
+  .phase-note{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin:0 0 28px;
+  }
+
+  /* ---- order ticket ---- */
+  .ticket{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, var(--panel) 0%, #0d1119 100%);
+    border-radius:14px;
+    padding:26px 26px 24px;
+  }
+  .ticket-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+  .ticket-head .label{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;}
+  .ticket-head .oid{font-family:var(--mono);font-size:12px;color:var(--amber);}
+
+  label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+  .amount-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:6px 6px 6px 16px;
+    margin-bottom:6px;
+  }
+  .amount-row .sym{font-family:var(--mono);color:var(--text-dim);font-size:18px;}
+  .amount-row input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:20px;
+    font-weight:600;
+    padding:10px 4px;
+    min-width:0;
+  }
+  .presets{display:flex;gap:8px;margin:10px 0 22px;flex-wrap:wrap;}
+  .preset-btn{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .preset-btn:hover{color:var(--amber);border-color:var(--amber-dim);}
+
+  .err{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--red);
+    margin:-14px 0 20px;
+    min-height:16px;
+  }
+
+  .breakdown{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .b-item{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .b-item .k{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+  .b-item .v{font-family:var(--mono);font-size:16px;font-weight:600;}
+  .b-item .v.green{color:var(--green);}
+  .b-item .v.amber{color:var(--amber);}
+
+  /* ---- pay panel ---- */
+  .pay-panel{
+    display:none;
+    border-top:1px dashed var(--line);
+    padding-top:22px;
+    margin-top:4px;
+    text-align:center;
+  }
+  .pay-panel.show{display:block;}
+  #qrcode{
+    display:inline-block;
+    padding:14px;
+    background:#fff;
+    border-radius:12px;
+    line-height:0;
+  }
+  .pay-hint{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    margin:14px 0 4px;
+  }
+  .deeplink{
+    display:inline-block;
+    margin-top:12px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--amber);
+    background:rgba(255,176,0,0.08);
+    border:1px solid var(--amber-dim);
+    padding:10px 18px;
+    border-radius:8px;
+    text-decoration:none;
+  }
+  .deeplink:hover{background:rgba(255,176,0,0.14);}
+
+  .addr-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:18px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    flex-wrap:wrap;
+  }
+  .addr-row code{color:var(--text);background:var(--panel-2);padding:4px 8px;border-radius:6px;}
+  .copy-btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    font-family:var(--mono);
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--amber);}
+
+  .cta{
+    width:100%;
+    background:var(--amber);
+    color:#0e0a03;
+    border:none;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .cta:hover{background:#ffc233;}
+  .cta:disabled{background:var(--panel-2);color:var(--text-dim);cursor:not-allowed;}
+
+  .verify-note{
+    margin-top:24px;
+    padding:16px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    font-size:13px;
+    color:var(--text-dim);
+    line-height:1.6;
+  }
+  .verify-note b{color:var(--text);}
+
+  footer{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:36px;
+    letter-spacing:0.05em;
+  }
+
+  @media (max-width:520px){
+    .phase-rail{grid-template-columns:repeat(5,1fr);}
+    .phase-btn .p{font-size:11px;}
+    .breakdown{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="ticker">
+    <span><span class="dot"></span>SOL/USD <span class="price" id="solPriceLabel">loading…</span></span>
+    <span id="tickerRight">live feed · coingecko</span>
+  </div>
+
+  <header>
+    <div class="eyebrow">BELTMAN LABS · Contribution Desk</div>
+    <h1>Phase 1 Early Contributor Access</h1>
+    <p>Contribute SOL to receive BELTMAN at the current phase rate, plus one month of indicator network access. Rate doubles at every phase — earlier contributors receive more tokens per dollar.</p>
+  </header>
+
+  <div class="phase-rail" id="phaseRail"></div>
+  <p class="phase-note" id="phaseNote"></p>
+
+  <div class="ticket">
+    <div class="ticket-head">
+      <span class="label">Order Ticket</span>
+      <span class="oid" id="orderId">—</span>
+    </div>
+
+    <label for="usdInput">Contribution amount (USD)</label>
+    <div class="amount-row">
+      <span class="sym">$</span>
+      <input id="usdInput" type="number" inputmode="decimal" placeholder="35.00" min="0" step="1" />
+    </div>
+    <div class="presets" id="presets"></div>
+    <div class="err" id="errMsg"></div>
+
+    <div class="breakdown">
+      <div class="b-item">
+        <div class="k">You send</div>
+        <div class="v amber" id="solOut">0.0000 SOL</div>
+      </div>
+      <div class="b-item">
+        <div class="k">You receive</div>
+        <div class="v green" id="tokOut">0 BELTMAN</div>
+      </div>
+    </div>
+
+    <button class="cta" id="genBtn">Generate Payment QR</button>
+
+    <div class="pay-panel" id="payPanel">
+      <div id="qrcode"></div>
+      <div class="pay-hint">Scan with Phantom, Solflare, or any Solana Pay wallet<br>— or tap below on mobile</div>
+      <a class="deeplink" id="deeplink" href="#" target="_blank" rel="noopener">Open in Wallet App</a>
+      <div class="addr-row">
+        <span>To:</span> <code id="walletShort"></code>
+        <button class="copy-btn" id="copyAddr">copy</button>
+      </div>
+      <div class="addr-row">
+        <span>Order ID:</span> <code id="orderIdFull"></code>
+        <button class="copy-btn" id="copyOid">copy</button>
+      </div>
+    </div>
+
+    <div class="verify-note">
+      <b>Save your Order ID after paying.</b> BELTMAN is sent manually after your transaction is confirmed on-chain — this page cannot detect payment automatically. Message your Order ID and wallet address to the BELTMAN LABS team (Telegram/Discord) to receive your tokens and indicator access. Typical turnaround: 24–48h during Phase 1.
+    </div>
+  </div>
+
+  <footer>Contract: 7m6F…MJAenL &nbsp;·&nbsp; Min $35 &nbsp;·&nbsp; Max $50,000 per contributor</footer>
+</div>
+
+<script>
+  const WALLET = "8TMFizfQAAsXj3tQgHH29HgyUNr2VMiZpgzpBXZS8Ng3";
+  const PHASES = [
+    { n: 1, price: 0.001 },
+    { n: 2, price: 0.002 },
+    { n: 3, price: 0.004 },
+    { n: 4, price: 0.008 },
+    { n: 5, price: 0.016 },
+  ];
+  const MIN_USD = 35;
+  const MAX_USD = 50000;
+  const PRESETS = [35, 100, 500, 2000];
+
+  let solPrice = null;
+  let activePhase = 1;
+  let orderId = null;
+
+  // ---- render phase rail ----
+  const rail = document.getElementById('phaseRail');
+  PHASES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'phase-btn' + (p.n === activePhase ? ' active' : '');
+    btn.innerHTML = `<span class="num">PHASE ${p.n}</span><span class="p">$${p.price.toFixed(3)}</span>`;
+    btn.onclick = () => { activePhase = p.n; refreshPhaseUI(); recalc(); };
+    btn.dataset.phase = p.n;
+    rail.appendChild(btn);
+  });
+
+  function refreshPhaseUI() {
+    document.querySelectorAll('.phase-btn').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.phase) === activePhase);
+    });
+    document.getElementById('phaseNote').textContent =
+      `Phase ${activePhase} price: $${currentPrice().toFixed(3)} / BELTMAN. Only Phase 1 is open for contributions today — later phases unlock as prior phases close.`;
+  }
+  function currentPrice(){ return PHASES.find(p => p.n === activePhase).price; }
+  refreshPhaseUI();
+
+  // ---- presets ----
+  const presetWrap = document.getElementById('presets');
+  PRESETS.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'preset-btn';
+    b.textContent = '$' + v;
+    b.onclick = () => { document.getElementById('usdInput').value = v; recalc(); };
+    presetWrap.appendChild(b);
+  });
+
+  // ---- live SOL price ----
+  async function fetchSolPrice() {
+    try {
+      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+      const data = await res.json();
+      solPrice = data.solana.usd;
+      document.getElementById('solPriceLabel').textContent = '$' + solPrice.toFixed(2);
+      document.getElementById('solPriceLabel').classList.remove('stale');
+      document.getElementById('tickerRight').textContent = 'updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      document.getElementById('solPriceLabel').textContent = solPrice ? '$' + solPrice.toFixed(2) + ' (cached)' : 'unavailable';
+      document.getElementById('solPriceLabel').classList.add('stale');
+    }
+    recalc();
+  }
+  fetchSolPrice();
+  setInterval(fetchSolPrice, 60000);
+
+  // ---- calculation ----
+  const usdInput = document.getElementById('usdInput');
+  const errMsg = document.getElementById('errMsg');
+  const genBtn = document.getElementById('genBtn');
+
+  function recalc() {
+    const usd = parseFloat(usdInput.value) || 0;
+    let err = '';
+    if (usd > 0 && usd < MIN_USD) err = `Minimum contribution is $${MIN_USD}.`;
+    if (usd > MAX_USD) err = `Maximum contribution is $${MAX_USD.toLocaleString()}.`;
+    errMsg.textContent = err;
+
+    const solAmt = solPrice ? usd / solPrice : 0;
+    const tokAmt = usd / currentPrice();
+
+    document.getElementById('solOut').textContent = solPrice ? solAmt.toFixed(4) + ' SOL' : '— (fetching price)';
+    document.getElementById('tokOut').textContent = tokAmt.toLocaleString(undefined, {maximumFractionDigits:0}) + ' BELTMAN';
+
+    const valid = usd >= MIN_USD && usd <= MAX_USD && solPrice;
+    genBtn.disabled = !valid;
+    document.getElementById('payPanel').classList.remove('show');
+  }
+  usdInput.addEventListener('input', recalc);
+  recalc();
+
+  // ---- generate QR ----
+  function makeOrderId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = 'BM1-';
+    for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
+
+  genBtn.addEventListener('click', () => {
+    const usd = parseFloat(usdInput.value) || 0;
+    if (usd < MIN_USD || usd > MAX_USD || !solPrice) return;
+
+    orderId = makeOrderId();
+    document.getElementById('orderId').textContent = orderId;
+    document.getElementById('orderIdFull').textContent = orderId;
+    document.getElementById('walletShort').textContent = WALLET.slice(0,4) + '…' + WALLET.slice(-4);
+
+    const solAmt = (usd / solPrice).toFixed(9);
+    const label = encodeURIComponent(`BELTMAN Phase ${activePhase}`);
+    const message = encodeURIComponent(`Order ${orderId} — $${usd} contribution`);
+    const memo = encodeURIComponent(orderId);
+    const payUri = `solana:${WALLET}?amount=${solAmt}&label=${label}&message=${message}&memo=${memo}`;
+
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: payUri,
+      width: 220,
+      height: 220,
+      colorDark: '#0e0a03',
+      colorLight: '#ffffff',
+    });
+
+    const deeplink = document.getElementById('deeplink');
+    deeplink.href = payUri;
+
+    document.getElementById('payPanel').classList.add('show');
+  });
+
+  // ---- copy buttons ----
+  document.getElementById('copyAddr').onclick = () => navigator.clipboard.writeText(WALLET);
+  document.getElementById('copyOid').onclick = () => navigator.clipboard.writeText(orderId || '');
+</script>
+</body>
+</html>
