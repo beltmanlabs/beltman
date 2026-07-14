@@ -362,7 +362,8 @@
     <div class="pay-panel" id="payPanel">
       <div id="qrcode"></div>
       <div class="pay-hint">Scan with Phantom, Solflare, or any Solana Pay wallet<br>— or tap below on mobile</div>
-      <a class="deeplink" id="deeplink" href="#" target="_blank" rel="noopener">Open in Wallet App</a>
+      <a class="deeplink" id="deeplink" href="#">Open in Wallet App</a>
+      <div class="pay-hint" id="desktopHint" style="display:none;">Deep link only works on mobile devices with a Solana wallet app installed — on desktop, scan the QR code above instead.</div>
       <div class="addr-row">
         <span>To:</span> <code id="walletShort"></code>
         <button class="copy-btn" id="copyAddr">copy</button>
@@ -506,6 +507,19 @@
 
     const deeplink = document.getElementById('deeplink');
     deeplink.href = payUri;
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    document.getElementById('desktopHint').style.display = isMobile ? 'none' : 'block';
+    if (!isMobile) {
+      deeplink.style.opacity = '0.5';
+      deeplink.onclick = (e) => {
+        e.preventDefault();
+        alert('This button only works on a mobile device with a Solana wallet app (Phantom, Solflare, etc.) installed. On desktop, scan the QR code above with your phone\'s wallet app instead.');
+      };
+    } else {
+      deeplink.style.opacity = '1';
+      deeplink.onclick = null;
+    }
 
     document.getElementById('payPanel').classList.add('show');
   });
